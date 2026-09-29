@@ -38,7 +38,7 @@ jobs:
         env:
           CLOUDFLARE_D1_ID: ${{ secrets.CLOUDFLARE_D1_ID }}
           CLOUDFLARE_R2_BUCKET: ${{ secrets.CLOUDFLARE_R2_BUCKET }}
-          OWNER_EMAIL: ${{ sectets.OWNER_EMAIL }}
+          OWNER_EMAIL: ${{ secrets.OWNER_EMAIL }}
 
       - name: Deploy to Cloudflare
         run: pnpm exec wrangler deploy --config dist/server/wrangler.json
