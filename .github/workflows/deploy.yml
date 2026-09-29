@@ -60,7 +60,7 @@ jobs:
           }
 
           const escaped = email.replaceAll("'", "''");
-          const sql = DELETE FROM auth_attempts WHERE key = 'register:${escaped}';
+          const sql = "DELETE FROM auth_attempts WHERE key = 'register:" + escaped + "'";
 
           const result = spawnSync(
             "pnpm",
