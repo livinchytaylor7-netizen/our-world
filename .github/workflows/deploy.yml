@@ -48,6 +48,40 @@ jobs:
           CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
 
+      - name: Clear owner registration test limit
+        if: github.event.head_commit.message == 'Clear owner registration rate limit'
+        run: |
+          node --input-type=module <<'JS'
+          import { spawnSync } from "node:child_process";
+
+          const email = process.env.OWNER_EMAIL?.trim().toLowerCase();
+          if (!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+            throw new Error("OWNER_EMAIL is missing or invalid");
+          }
+
+          const escaped = email.replaceAll("'", "''");
+          const sql = DELETE FROM auth_attempts WHERE key = 'register:${escaped}';
+
+          const result = spawnSync(
+            "pnpm",
+            [
+              "exec", "wrangler", "d1", "execute", "our-world",
+              "--remote",
+              "--command", sql,
+              "--config", "dist/server/wrangler.json"
+            ],
+            { stdio: "inherit" }
+          );
+
+          if (result.status !== 0) {
+            process.exit(result.status || 1);
+          }
+          JS
+        env:
+          OWNER_EMAIL: ${{ secrets.OWNER_EMAIL }}
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+
       - name: Deploy to Cloudflare
         run: pnpm exec wrangler deploy --config dist/server/wrangler.json
         env:
