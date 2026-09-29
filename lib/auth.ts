@@ -7,7 +7,7 @@ const encoder=new TextEncoder();
 export function bytes(bytes:Uint8Array){return Array.from(bytes,x=>x.toString(16).padStart(2,"0")).join("")}
 export function randomToken(){return bytes(crypto.getRandomValues(new Uint8Array(32)))}
 export async function digest(value:string){return bytes(new Uint8Array(await crypto.subtle.digest("SHA-256",encoder.encode(value))))}
-export async function passwordHash(password:string,salt:string){const key=await crypto.subtle.importKey("raw",encoder.encode(password),"PBKDF2",false,["deriveBits"]);return bytes(new Uint8Array(await crypto.subtle.deriveBits({name:"PBKDF2",salt:encoder.encode(salt),iterations:310000,hash:"SHA-256"},key,256)))}
+export async function passwordHash(password:string,salt:string){const key=await crypto.subtle.importKey("raw",encoder.encode(password),"PBKDF2",false,["deriveBits"]);return bytes(new Uint8Array(await crypto.subtle.deriveBits({name:"PBKDF2",salt:encoder.encode(salt),iterations:100000,hash:"SHA-256"},key,256)))}
 export function equal(a:string,b:string){if(a.length!==b.length)return false;let diff=0;for(let i=0;i<a.length;i++)diff|=a.charCodeAt(i)^b.charCodeAt(i);return diff===0}
 export function email(value:unknown){const s=String(value??"").trim().toLowerCase();return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(s)&&s.length<200?s:""}
 export function passwordValid(value:unknown){return typeof value==="string"&&value.length>=12&&value.length<=128}
