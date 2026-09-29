@@ -42,6 +42,8 @@ export async function POST(request: Request) {
   const action = String(data.action ?? "");
   const address = email(data.email);
 
+  let stage = "START";
+
   try {
     if (action === "register") {
       if (!address || !passwordValid(data.password)) {
@@ -51,6 +53,7 @@ export async function POST(request: Request) {
         );
       }
 
+      stage = "RATE_LIMIT";
       if (!(await rateLimit("register:" + address, 5))) {
         return jsonError(
           "Too many attempts. Try again later.",
@@ -58,12 +61,14 @@ export async function POST(request: Request) {
         );
       }
 
+      stage = "CHECK_OWNER_EMAIL";
       const owner =
         address === config.OWNER_EMAIL?.trim().toLowerCase();
 
       let inviteHash = "";
 
       if (owner) {
+        stage = "OWNER_LOOKUP";
         const existing = await config.DB
           .prepare("SELECT id FROM accounts WHERE role='owner'")
           .first();
@@ -121,6 +126,7 @@ export async function POST(request: Request) {
       const id = existing?.id ?? crypto.randomUUID();
       const salt = randomToken();
 
+      stage = "PASSWORD_HASH";
       const hash = await passwordHash(
         String(data.password),
         salt
@@ -164,6 +170,7 @@ export async function POST(request: Request) {
           .run();
       }
 
+      stage = "CREATE_SESSION";
       const sessionCookie = await issueSession(id);
 
       return Response.json(
@@ -358,10 +365,10 @@ export async function POST(request: Request) {
 
     return jsonError("Unknown action.", 400);
   } catch (error) {
-    console.error("OUR_WORLD_AUTH_ERROR", error);
+    console.error("OUR_WORLD_AUTH_ERROR", stage, error);
 
     return jsonError(
-      "Account service unavailable. Try again shortly.",
+      "Account service unavailable. Diagnostic: " + stage,
       503
     );
   }
