@@ -32,5 +32,7 @@ export async function POST(request:Request){if(!await requireOrigin(request))ret
    if(!passwordValid(data.password))return jsonError("Use a password of at least 12 characters.",400);const hash=await digest(String(data.token??""));const row=await config.DB.prepare("SELECT account_id AS id FROM password_resets WHERE token_hash=? AND used_at IS NULL AND expires_at>?").bind(hash,Date.now()).first<{id:string}>();if(!row)return jsonError("This reset link has expired.",403);const salt=randomToken();await config.DB.batch([config.DB.prepare("UPDATE accounts SET salt=?,password_hash=? WHERE id=?").bind(salt,await passwordHash(String(data.password),salt),row.id),config.DB.prepare("DELETE FROM sessions WHERE account_id=?").bind(row.id),config.DB.prepare("UPDATE password_resets SET used_at=? WHERE token_hash=?").bind(Date.now(),hash)]);return Response.json({ok:true})
   }
   return jsonError("Unknown action.",400)
- }catch{return jsonError("Account service unavailable. Try again shortly.",503)}
+ }catch(error){
+  console.error("OUR_WORLD_AUTH_ERROR", error);
+  return jsonError("Account service unavailable. Try again shortly.",503);
 }
