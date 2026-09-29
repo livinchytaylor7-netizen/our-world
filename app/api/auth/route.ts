@@ -36,3 +36,9 @@ export async function POST(request:Request){if(!await requireOrigin(request))ret
   console.error("OUR_WORLD_AUTH_ERROR", error);
   return jsonError("Account service unavailable. Try again shortly.",503);
 }
+
+}catch(error){
+  console.error("OUR_WORLD_AUTH_ERROR", error);
+  return jsonError("Account service unavailable. Try again shortly.",503);
+}
+}
