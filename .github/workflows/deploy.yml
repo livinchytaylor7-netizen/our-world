@@ -49,7 +49,7 @@ jobs:
           CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
 
       - name: Clear owner registration test limit
-        if: github.event.head_commit.message == 'Clear owner registration rate limit'
+        if: github.event.head_commit.message == 'Fix registration reset and clear limit'
         run: |
           node --input-type=module <<'JS'
           import { spawnSync } from "node:child_process";
